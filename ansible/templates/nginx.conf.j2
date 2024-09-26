@@ -1,0 +1,22 @@
+server {
+    listen 80;  # Сервер будет прослушивать HTTP-трафик на порту 80
+    server_name {{ server_name }};  # Имя сервера (домен), которое передается в переменной {{ server_name }} через Ansible
+
+    root /var/www/html;  # Устанавливаем корневую директорию для сервера (здесь будут храниться файлы сайта)
+    index index.php index.html;  # Указываем файлы, которые будут использоваться в качестве главной страницы (индексного файла)
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;  # Попытка доступа к файлу или директории; если их нет, перенаправляем запрос на index.php с сохранением строки запроса
+    }
+
+    location ~ \.php$ {  # Обрабатываем запросы к файлам с расширением .php
+        include snippets/fastcgi-php.conf;  # Включаем конфигурацию FastCGI для обработки PHP-запросов
+        fastcgi_pass php:9000;  # Направляем PHP-запросы на сервис php, работающий на порту 9000 (обычно это PHP-FPM контейнер)
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;  # Передаем путь к исполняемому PHP-скрипту
+        include fastcgi_params;  # Включаем дополнительные параметры для FastCGI
+    }
+
+    location ~ /\.ht {  # Защищаем файлы .htaccess и .htpasswd (обычно для безопасности)
+        deny all;  # Запрещаем доступ к этим файлам через веб-сервер
+    }
+}

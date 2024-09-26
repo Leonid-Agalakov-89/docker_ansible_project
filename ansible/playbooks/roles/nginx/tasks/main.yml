@@ -1,0 +1,15 @@
+---
+- name: Копирование шаблона конфигурации Nginx
+  template:
+    src: nginx.conf.j2
+    dest: /srv/nginx/nginx.conf
+
+- name: Проверка конфигурации Nginx
+  command: nginx -t
+  notify:
+    - Перезапустить Nginx
+
+- name: Перезапуск Nginx
+  service:
+    name: nginx
+    state: restarted

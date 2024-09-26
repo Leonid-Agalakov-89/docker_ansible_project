@@ -1,0 +1,36 @@
+---
+- name: Удаление старого containerd.io  # Удаляем старую версию containerd.io, если она установлена
+  apt:
+    name: containerd.io  # Имя пакета, который нужно удалить
+    state: absent  # Устанавливаем состояние "отсутствует" (пакет должен быть удалён)
+
+- name: Установка containerd.io  # Устанавливаем пакет containerd.io
+  apt:
+    name: containerd.io  # Имя пакета, который нужно установить
+    state: present  # Устанавливаем состояние "присутствует" (пакет должен быть установлен)
+
+- name: Установка Docker и docker-compose  # Устанавливаем пакеты Docker, docker-compose и python3-pip
+  apt:
+    name: "{{ item }}"  # Для каждого элемента из списка ниже устанавливается соответствующий пакет
+    state: present  # Пакет должен быть установлен
+    update_cache: yes  # Обновляем кэш пакетов перед установкой
+    force_apt_get: yes  # Принуждаем использовать apt-get для установки
+  loop:  # Перебираем список пакетов, которые необходимо установить
+    - docker.io  # Пакет Docker
+    - docker-compose  # Пакет Docker Compose
+    - python3-pip  # Пакет менеджера Python pip
+
+- name: Копирование docker-compose файла  # Копируем файл docker-compose.yml на целевой сервер
+  copy:
+    src: docker-compose.yml  # Исходный файл, который находится на машине с Ansible
+    dest: /srv/docker-compose.yml  # Путь, куда файл будет скопирован на целевом сервере
+
+- name: Копирование Dockerfile  # Копируем Dockerfile на целевой сервер
+  copy:
+    src: Dockerfile  # Исходный Dockerfile на машине с Ansible
+    dest: /srv/Dockerfile  # Путь, куда Dockerfile будет скопирован на целевом сервере
+
+- name: Запуск docker-compose  # Выполняем команду для поднятия контейнеров с помощью docker-compose
+  command: docker-compose -f /srv/docker-compose.yml up -d  # Команда для запуска docker-compose с файлом конфигурации в режиме "background"
+  args:
+    chdir: /srv  # Перед выполнением команды меняем рабочую директорию на /srv

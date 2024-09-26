@@ -1,0 +1,43 @@
+# Версия Docker Compose
+version: '3'
+
+services:
+  # Сервис PHP-приложения
+  php:
+    # Определение сборки с использованием Dockerfile из текущей директории
+    build: .
+    # Определение сети для подключения других сервисов
+    networks:
+      - app-network
+    # Том для хранения данных MySQL (перемонтирование директории)
+    volumes:
+      - php-data:/var/www/html
+    # Указываем необходимость зависимости от сервиса MySQL, чтобы запуск был после его готовности
+    depends_on:
+      - mysql
+
+  # Сервис MySQL базы данных
+  mysql:
+    image: mysql:8
+    # Объявление сети для подключения других сервисов
+    networks:
+      - app-network
+    # Том для хранения данных базы данных
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # Окружение для конфигурации MySQL
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+
+# Определение сети
+networks:
+  app-network:
+    driver: bridge
+
+# Определение томов для хранения данных
+volumes:
+  php-data:
+  mysql_data:
